@@ -18,8 +18,8 @@ export const serveRest = (data) => {
         order = 'asc'
       } = req.query;
 
-      const startIndex = (page - 1) * perPage;
-      const endIndex = startIndex + perPage;
+      const startIndex = (parseInt(page) - 1) * parseInt(perPage);
+      const endIndex = startIndex + parseInt(perPage);
 
       const latestFirmwareVersion = await fetchLatestFirmwareVersion(connection);
       const query = buildQuery({
