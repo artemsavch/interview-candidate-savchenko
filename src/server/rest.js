@@ -33,10 +33,13 @@ export const serveRest = (data) => {
 
       const paginatedData = usersWithRelatedData.slice(startIndex, endIndex);
 
+      const total = usersWithRelatedData.length;
+
       res.json({
         page,
         perPage,
-        pages: Math.ceil(usersWithRelatedData.length / perPage),
+        pages: Math.ceil(total / perPage),
+        total,
         data: paginatedData,
       });
     } catch (error) {

@@ -7,7 +7,10 @@ export const DataTable = (props) => (
       {!!props.header && (
         <Table.Row>
           <Table.HeaderCell colSpan={props.columns.length}>
-            {props.header}
+            <div className="d-">
+                {props.header}
+                <p>Total items: <span>{props.itemsCount}</span></p>
+            </div>
           </Table.HeaderCell>
         </Table.Row>
       )}
@@ -16,7 +19,7 @@ export const DataTable = (props) => (
           <Table.HeaderCell
             key={column.id}
             sorted={
-              props.sortBy.columnId === column.id ? "ascending" : undefined
+              props.sortBy === column.id ? `${props.sortDirection}ending` : undefined
             }
             onClick={() => props.sort(column.id)}
             collapsing={column.collapsing}

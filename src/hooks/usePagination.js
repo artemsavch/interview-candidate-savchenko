@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-export const usePagination = ({page, pages, perPage}) => {
+export const usePagination = ({page, pages, perPage, total}) => {
     const [pagination, setPagination] = useState({
         page: page,
         pages: pages,
         perPage: perPage,
+        total: total,
     });
 
     const handlePageChange = (newPage) => {

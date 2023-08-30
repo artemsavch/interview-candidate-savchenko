@@ -13,6 +13,7 @@ import {
 import { USERS_WITH_RELATED_DATA } from './shared/endpoints';
 import { useSorting } from './hooks/useSorting';
 import { usePagination } from './hooks/usePagination';
+import PageLoader from "./components/loader/PageLoader.jsx";
 
 const columns = [
   {
@@ -39,7 +40,7 @@ const columns = [
   {
     id: 'firmware_version',
     header: 'Firmware',
-    render: row => row.firmware_version,
+    render: row => row.firmware_label,
   },
   {
     id: 'finish_date',
@@ -58,9 +59,12 @@ function App() {
   } = usePagination(DEFAULT_PAGINATION);
 
   const [tableData, setTableData] = useState([]);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchTableData = async () => {
     try {
+      setIsLoading(true);
       const response = await httpClient.axios.get(USERS_WITH_RELATED_DATA, {
         params: {
           column: sort.column,
@@ -75,9 +79,16 @@ function App() {
       setPagination(prevPagination => ({
         ...prevPagination,
         pages: response.data.pages,
+        total: response.data.total,
       }));
+
+      setError(null); // Clear any previous errors
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError('An error occurred while fetching data. Please try again.'); // Set the error state
+    } finally {
+      console.log('HEEHEHEH')
+      setIsLoading(false)
     }
   }
 
@@ -86,23 +97,31 @@ function App() {
   }, [sort, pagination.page, pagination.perPage]);
 
   return (
-    <DataTable
-      data={tableData}
-      sortBy="user"
-      columns={columns}
-      sort={columnId => handleSort(columnId)}
-      header={<Header>Devices to Update</Header>}
-      footer={
-        <Pagination
-          current={pagination.page}
-          total={pagination.pages}
-          size={pagination.perPage}
-          sizes={[10, 25, 50]}
-          setCurrent={current => handlePageChange(current)}
-          setSize={size => handlePageSizeChange(size)}
+      <>
+        {isLoading && <PageLoader />}
+        <DataTable
+            data={tableData}
+            sortBy={sort.column}
+            sortDirection={sort.order}
+            columns={columns}
+            sort={columnId => handleSort(columnId)}
+            itemsCount={pagination.total}
+            header={<Header>Devices to Update</Header>}
+            footer={
+              <>
+                {error && <div className="error-message">{error}</div>}
+                <Pagination
+                    current={pagination.page}
+                    total={pagination.pages}
+                    size={pagination.perPage}
+                    sizes={[10, 25, 50]}
+                    setCurrent={current => handlePageChange(current)}
+                    setSize={size => handlePageSizeChange(size)}
+                />
+              </>
+            }
         />
-      }
-    />
+      </>
   );
 }
 

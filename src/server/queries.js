@@ -1,7 +1,6 @@
 const sortColumns = {
     device_name: 'devices.name',
     email: 'users.email',
-    is_admin: 'users.admin',
     due_date: 'users.subscription_ends',
     finish_date: 'updates.finished',
     status: `
@@ -15,18 +14,21 @@ const sortColumns = {
 
 export const fetchLatestFirmwareVersion = async (connection) => {
     return connection
-        .select("*")
+        .select(
+            'id',
+            connection.raw(
+                "CAST(((firmware_versions.major + 100000) || (firmware_versions.minor + 100000) || (firmware_versions.patch + 100000)) AS INTEGER) AS firmware_version"
+            ),
+        )
         .from("firmware_versions")
-        .orderBy("major", "desc")
-        .orderBy("minor", "desc")
-        .orderBy("patch", "desc")
+        .orderBy("firmware_version", "desc")
         .first();
 };
 
 export const buildQuery = ({ connection, column, order, latestFirmwareVersion }) => {
     const currentDate = new Date().toISOString();
 
-    let query = connection
+    return connection
         .select(
             "users.email AS email",
             "users.admin AS is_admin",
@@ -34,7 +36,10 @@ export const buildQuery = ({ connection, column, order, latestFirmwareVersion })
             "devices.name AS device_name",
             "updates.finished AS finish_date",
             connection.raw(
-                "firmware_versions.major || '.' || firmware_versions.minor || '.' || firmware_versions.patch AS firmware_version"
+                "CAST(((firmware_versions.major + 100000) || (firmware_versions.minor + 100000) || (firmware_versions.patch + 100000)) AS INTEGER) AS firmware_version"
+            ),
+            connection.raw(
+                "firmware_versions.major || '.' || firmware_versions.minor || '.' || firmware_versions.patch AS firmware_label"
             ),
             connection.raw(`
                 CASE
@@ -49,16 +54,6 @@ export const buildQuery = ({ connection, column, order, latestFirmwareVersion })
         .leftJoin("updates", "devices.id", "updates.device_id")
         .leftJoin("firmware_versions", "firmware_versions.id", "devices.firmware_version_id")
         .where("due_date", ">", currentDate)
-        .from("users")
-
-        if (column === 'firmware_version') {
-            query
-                .orderBy("firmware_versions.major", order)
-                .orderBy("firmware_versions.minor", order)
-                .orderBy("firmware_versions.patch", order);
-        } else {
-            query.orderBy(connection.raw(sortColumns[column] || column), order);
-        }
-
-    return query;
+        .orderBy(connection.raw(sortColumns[column] || column), order)
+        .from("users");
 };

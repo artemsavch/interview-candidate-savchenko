@@ -4,4 +4,5 @@ export const DEFAULT_PAGINATION = {
     page: 1,
     pages: 1,
     perPage: 10,
+    total: 0,
 };
