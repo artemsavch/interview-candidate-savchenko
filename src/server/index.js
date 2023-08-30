@@ -3,7 +3,7 @@ import { serveGraphQl } from "./graphql.js";
 import { serveRest } from "./rest.js";
 
 // GraphQL server:
-serveGraphQl();
+// serveGraphQl();
 
 // REST server:
-// serveRest();
+serveRest();
