@@ -1,54 +1,18 @@
 import { useState, useEffect } from 'react';
-import {
-  Header,
-  Icon,
-  Loader,
-  Popup,
-} from 'semantic-ui-react'
+import { Header } from 'semantic-ui-react'
 import { DataTable } from './components/DataTable'
 import { Pagination } from './components/Pagination'
-import httpClient from "./axios";
-
-const UpToDateIcon = () => {
-  const icon = <Icon name="checkmark" color="green" />;
-  return <Popup content="Up to Date" trigger={icon} />;
-};
-
-const UpdateInProgressIcon = () => {
-  const icon = <Loader active inline size="tiny" />;
-  return <Popup content="Update In Progress" trigger={icon} />;
-}
-
-const UnauthorizedUserIcon = () => {
-  const icon = <Icon name="warning sign" color="yellow" />;
-  return <Popup content="Not Authorized" trigger={icon} />;
-}
-
-const computedDate = (dateString) => {
-
-  if (dateString === null) {
-    return 'Update in progress';
-  }
-
-  const date = new Date(dateString);
-  const today = new Date();
-
-  if (date.toDateString() === today.toDateString()) {
-    return 'Today';
-  }
-
-  return date.toDateString();
-}
-
-const computedStatus = (rowData) => {
-  if (rowData.finish_date === null) {
-    return <UpdateInProgressIcon/>
-  }
-
-  if (rowData.firmware_status === 'latest') {
-    return <UpToDateIcon/>
-  }
-}
+import httpClient from "./services/httpClient";
+import UnauthorizedUserIcon from "./components/icons/UnauthorizedUserIcon";
+import { computedStatus, computedDate } from "./helper.js";
+import {
+  DEFAULT_SORT_COLUMN,
+  DEFAULT_SORT_ORDER,
+  DEFAULT_PAGINATION,
+} from './shared/constants';
+import { USERS_WITH_RELATED_DATA } from './shared/endpoints';
+import { useSorting } from './hooks/useSorting';
+import { usePagination } from './hooks/usePagination';
 
 const columns = [
   {
@@ -85,21 +49,19 @@ const columns = [
 ]
 
 function App() {
+  const { sort, handleSort } = useSorting(DEFAULT_SORT_COLUMN, DEFAULT_SORT_ORDER);
+  const {
+    pagination,
+    setPagination,
+    handlePageChange,
+    handlePageSizeChange
+  } = usePagination(DEFAULT_PAGINATION);
+
   const [tableData, setTableData] = useState([]);
-  const [sort, setSort] = useState({
-    column: 'device_name',
-    order: 'asc'
-  });
-  const [pagination, setPagination] = useState({
-    page: 1,
-    pages: 1,
-    total: 1,
-    perPage: 10
-  })
 
   const fetchTableData = async () => {
     try {
-      const response = await httpClient.axios.get('/users-with-related-data', {
+      const response = await httpClient.axios.get(USERS_WITH_RELATED_DATA, {
         params: {
           column: sort.column,
           order: sort.order,
@@ -107,41 +69,17 @@ function App() {
           perPage: pagination.perPage
         }
       });
-      console.log('response.data', response.data)
+
       setTableData(response.data.data);
+
       setPagination(prevPagination => ({
         ...prevPagination,
         pages: response.data.pages,
-        total: response.data.total,
       }));
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   }
-
-  const handleSort = (column) => {
-    setSort({
-      column: column,
-      order: sort.order === 'asc' ? 'desc' : 'asc'
-    })
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.pages) {
-      setPagination(prevPagination => ({
-        ...prevPagination,
-        page: newPage,
-      }));
-    }
-  };
-
-  const handlePageSizeChange = (size) => {
-    setPagination(prevPagination => ({
-      ...prevPagination,
-      perPage: size,
-      page: 1,
-    }));
-  };
 
   useEffect(() => {
     fetchTableData();
