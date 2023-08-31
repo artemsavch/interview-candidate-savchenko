@@ -7,7 +7,7 @@ export const DataTable = (props) => (
       {!!props.header && (
         <Table.Row>
           <Table.HeaderCell colSpan={props.columns.length}>
-            <div className="d-">
+            <div>
                 {props.header}
                 <p>Total items: <span>{props.itemsCount}</span></p>
             </div>

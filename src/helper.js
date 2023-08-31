@@ -1,7 +1,7 @@
 import UpdateInProgressIcon from "./components/icons/UpdateInProgressIcon.js";
 import UpToDateIcon from "./components/icons/UpToDateIcon.js";
 
-export const computedStatus = (rowData) => {
+export const computedStatus = rowData => {
     if (rowData.finish_date === null) {
         return <UpdateInProgressIcon/>
     }
@@ -11,7 +11,7 @@ export const computedStatus = (rowData) => {
     }
 }
 
-export const computedDate = (dateString) => {
+export const computedDate = dateString => {
     if (dateString === null) {
         return 'Update in progress';
     }
