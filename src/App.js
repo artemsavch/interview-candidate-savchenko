@@ -87,8 +87,7 @@ function App() {
       console.error('Error fetching data:', error);
       setError('An error occurred while fetching data. Please try again.'); // Set the error state
     } finally {
-      console.log('HEEHEHEH')
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
